@@ -113,12 +113,14 @@ export default function App() {
         </nav>
       </aside>
 
-      <main className="flex-1 bg-white overflow-auto pt-16 sm:pt-0">
-        <div className="sm:hidden fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center font-semibold text-lg">
-          {renderTitle()}
-        </div>
-        {renderContent()}
-      </main>
+      <main className="flex-1 bg-white overflow-auto pt-16 sm:pt-0 relative">
+  {/* Barra superior para título em telas pequenas */}
+  <div className="sm:hidden fixed top-0 left-0 right-0 bg-white z-40 py-4 shadow-md">
+    <h1 className="text-center font-semibold text-lg">{renderTitle()}</h1>
+  </div>
+  <div className="sm:hidden h-16" /> {/* Espaço para empurrar o conteúdo abaixo da barra */}
+  {renderContent()}
+</main>
     </div>
   );
 }
