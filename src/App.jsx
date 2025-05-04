@@ -13,6 +13,31 @@ export default function App() {
   const [selectedPage, setSelectedPage] = useState("dashboard");
   const [menuAberto, setMenuAberto] = useState(false);
 
+  const renderTitle = () => {
+    switch (selectedPage) {
+      case "dashboard":
+        return "Painel de Controle";
+      case "construtoras":
+        return "Construtoras";
+      case "obras":
+        return "Obras";
+      case "atividades":
+        return "Atividades";
+      case "relatoriofinanceiro":
+        return "Relatório Financeiro";
+      case "relatorioservicos":
+        return "Relatório de Serviços";
+      case "detalhesobra":
+        return "Detalhes da Obra";
+      case "backup":
+        return "Backup";
+      case "configuracoes":
+        return "Configurações";
+      default:
+        return "CD Locações";
+    }
+  };
+
   const renderContent = () => {
     switch (selectedPage) {
       case "dashboard":
@@ -52,7 +77,6 @@ export default function App() {
           "sm:block " +
           (menuAberto ? "block fixed inset-0 bg-white z-40 w-64 p-4" : "hidden")
         }
-        
       >
         <div className="flex flex-col items-center mb-6">
           <img src="/logo.png" alt="Logo da empresa" className="h-12 w-auto mb-2" />
@@ -89,7 +113,12 @@ export default function App() {
         </nav>
       </aside>
 
-      <main className="flex-1 bg-white overflow-auto">{renderContent()}</main>
+      <main className="flex-1 bg-white overflow-auto pt-16 sm:pt-0">
+        <div className="sm:hidden fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center font-semibold text-lg">
+          {renderTitle()}
+        </div>
+        {renderContent()}
+      </main>
     </div>
   );
 }
