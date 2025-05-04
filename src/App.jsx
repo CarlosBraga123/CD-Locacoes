@@ -48,10 +48,11 @@ export default function App() {
       </button>
 
       <aside
-        className={\`
-          sm:block
-          \${menuAberto ? "block fixed inset-0 bg-white z-40 w-64 p-4" : "hidden"}
-        \`}
+        className={
+          "sm:block " +
+          (menuAberto ? "block fixed inset-0 bg-white z-40 w-64 p-4" : "hidden")
+        }
+        
       >
         <div className="flex flex-col items-center mb-6">
           <img src="/logo.png" alt="Logo da empresa" className="h-12 w-auto mb-2" />
