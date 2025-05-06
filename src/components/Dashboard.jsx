@@ -1,12 +1,23 @@
 import { useEffect, useState } from "react";
 
 export default function Dashboard() {
+  const [tarefasPendentes, setTarefasPendentes] = useState([]);
+  const [usuario, setUsuario] = useState("Usuário");
   const [recentes, setRecentes] = useState([]);
   const [agendados, setAgendados] = useState([]);
   const [obras, setObras] = useState([]);
   const [cards, setCards] = useState([]);
 
   useEffect(() => {
+    const usuarioSalvo = JSON.parse(localStorage.getItem("usuarioLogado"));
+    if (usuarioSalvo?.nome) {
+      setUsuario(usuarioSalvo.nome);
+    }
+
+    const tarefasTodas = JSON.parse(localStorage.getItem("tarefas") || "[]");
+    const pendentes = tarefasTodas.filter((t) => !t.concluida);
+    setTarefasPendentes(pendentes);
+
     const todas = JSON.parse(localStorage.getItem("atividades") || "[]");
     const listaObras = JSON.parse(localStorage.getItem("obras") || "[]");
     setObras(listaObras);
@@ -50,6 +61,22 @@ export default function Dashboard() {
     ]);
   }, []);
 
+  const concluir = (id) => {
+    const todas = JSON.parse(localStorage.getItem("tarefas") || "[]");
+    const atualizadas = todas.map((t) =>
+      t.id === id
+        ? {
+            ...t,
+            concluida: true,
+            concluidaEm: new Date().toISOString(),
+            concluidaPor: usuario
+          }
+        : t
+    );
+    localStorage.setItem("tarefas", JSON.stringify(atualizadas));
+    setTarefasPendentes(atualizadas.filter((t) => !t.concluida));
+  };
+
   const formatarData = (data) => {
     if (!data) return "—";
     const [y, m, d] = data.split("-");
@@ -87,6 +114,36 @@ export default function Dashboard() {
             ))}
           </ul>
         )}
+      </section>
+
+      {/* Tarefas Pendentes */}
+      <section>
+        <h2 className="text-lg font-semibold mb-2">📝 Tarefas Pendentes</h2>
+        <div className="space-y-2">
+          {tarefasPendentes.length === 0 ? (
+            <p className="text-sm text-gray-500">Nenhuma tarefa pendente.</p>
+          ) : (
+            tarefasPendentes.map((tarefa) => (
+              <div
+                key={tarefa.id}
+                className="border p-3 rounded-md shadow-sm bg-white flex justify-between items-start"
+              >
+                <div>
+                  <p className="font-medium">{tarefa.texto}</p>
+                  <p className="text-xs text-gray-500">
+                    Criada em: {new Date(tarefa.criadaEm).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => concluir(tarefa.id)}
+                  className="bg-green-500 text-white px-3 py-1 rounded text-sm h-fit"
+                >
+                  Concluir
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </section>
 
       {/* Atividades Recentes */}

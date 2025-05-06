@@ -7,89 +7,110 @@ export default function DetalhesObra() {
 
   useEffect(() => {
     const obrasSalvas = JSON.parse(localStorage.getItem("obras") || "[]");
-    const atividadesSalvas = JSON.parse(localStorage.getItem("atividades") || "[]");
     setObras(obrasSalvas);
+
+    const atividadesSalvas = JSON.parse(localStorage.getItem("atividades") || "[]");
     setAtividades(atividadesSalvas);
   }, []);
 
-  const resumo = (obra) => {
-    const relacionadas = atividades.filter((a) => a.obra === obra.nome && a.construtora === obra.construtora && a.dataLiberacao);
-    const total = { instalação: 0, remoção: 0, manutenção: 0, deslocamento: 0, ascensão: 0 };
-    relacionadas.forEach((a) => {
-      const s = a.servico.toLowerCase();
-      if (total[s] !== undefined) total[s]++;
-    });
-    const saldo = total.instalação + total.ascensão - total.remoção;
-    return { ...total, saldo };
+  const calcularAtivos = (obraNome, equipamento) => {
+    const atividadesObra = atividades.filter(a =>
+      a.obra === obraNome &&
+      a.equipamento === equipamento &&
+      a.dataLiberacao &&
+      a.servico === "Instalação"
+    );
+    return atividadesObra.length;
   };
 
-  const enviarWhatsApp = (obra) => {
-    const r = resumo(obra);
-    const texto = `📌 *Detalhes da Obra - CD Locações*\n\n` +
-      `🏗️ *Construtora:* ${obra.construtora}\n` +
-      `🏢 *Obra:* ${obra.nome}\n` +
-      `👷 *Engenheiro:* ${obra.engenheiro}\n` +
-      `📍 *Endereço:* ${obra.endereco}\n` +
-      `📝 *Observações:* ${obra.observacoes || "—"}\n\n` +
-      `📊 *Resumo de Serviços:*\n` +
-      `• Instalações: ${r.instalação}\n` +
-      `• Ascensões: ${r.ascensão}\n` +
-      `• Remoções: ${r.remoção}\n` +
-      `• Manutenções: ${r.manutenção}\n` +
-      `• Deslocamentos: ${r.deslocamento}\n` +
-      `✅ *Saldo de Equipamentos Ativos:* ${r.saldo}`;
+  const contarServicos = (obraNome, equipamento, servico) => {
+    return atividades.filter(a =>
+      a.obra === obraNome &&
+      a.equipamento === equipamento &&
+      a.servico === servico &&
+      a.dataLiberacao
+    ).length;
+  };
 
-    const link = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-    window.open(link, "_blank");
+  const selecionarObra = (obra) => {
+    setObraSelecionada(obra);
+  };
+
+  const servicosExecutados = (obraNome) => {
+    return atividades
+      .filter((a) => a.obra === obraNome && a.dataLiberacao)
+      .sort((a, b) => new Date(b.dataLiberacao) - new Date(a.dataLiberacao));
   };
 
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-lg font-bold">📌 Detalhes da Obra</h2>
 
-      <select
-        onChange={(e) => {
-          const selecionada = obras.find((o) => o.id === parseInt(e.target.value));
-          setObraSelecionada(selecionada || null);
-        }}
-        className="border p-2 rounded w-full"
-      >
-        <option value="">Selecione uma obra</option>
-        {obras.map((obra) => (
-          <option key={obra.id} value={obra.id}>
-            {obra.nome} ({obra.construtora})
-          </option>
-        ))}
-      </select>
-
-      {obraSelecionada && (
-        <div className="border rounded p-4 space-y-2 shadow bg-gray-50">
-          <h3 className="font-bold text-lg">{obraSelecionada.nome}</h3>
-          <p><strong>Construtora:</strong> {obraSelecionada.construtora}</p>
-          <p><strong>Engenheiro:</strong> {obraSelecionada.engenheiro}</p>
-          <p><strong>Endereço:</strong> {obraSelecionada.endereco}</p>
-          <p><strong>Observações:</strong> {obraSelecionada.observacoes}</p>
-          <hr />
-          <h4 className="font-semibold">Resumo de Serviços</h4>
-          {(() => {
-            const r = resumo(obraSelecionada);
-            return (
-              <ul className="text-sm list-disc pl-5 space-y-1">
-                <li>Instalações: {r.instalação}</li>
-                <li>Ascensões (Mini Grua): {r.ascensão}</li>
-                <li>Remoções: {r.remoção}</li>
-                <li>Manutenções: {r.manutenção}</li>
-                <li>Deslocamentos: {r.deslocamento}</li>
-                <li><strong>Saldo de Equipamentos Ativos: {r.saldo}</strong></li>
-              </ul>
-            );
-          })()}
+      {!obraSelecionada ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {obras.map((obra) => (
+            <div
+              key={obra.id}
+              className="p-4 border rounded shadow cursor-pointer bg-white"
+              onClick={() => selecionarObra(obra)}
+            >
+              <p className="text-sm text-gray-500">{obra.construtora}</p>
+              <p className="text-lg font-semibold">{obra.nome}</p>
+              <p className="text-sm">Balancinhos ativos: {calcularAtivos(obra.nome, "Balancinho")}</p>
+              {calcularAtivos(obra.nome, "Mini Grua") > 0 && (
+                <p className="text-sm">Mini Gruas ativas: {calcularAtivos(obra.nome, "Mini Grua")}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
           <button
-            onClick={() => enviarWhatsApp(obraSelecionada)}
-            className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            onClick={() => setObraSelecionada(null)}
+            className="text-blue-600 underline"
           >
-            Enviar via WhatsApp
+            ← Voltar
           </button>
+
+          <div className="space-y-2">
+            <p><strong>Nome:</strong> {obraSelecionada.nome}</p>
+            <p><strong>Construtora:</strong> {obraSelecionada.construtora}</p>
+            {obraSelecionada.engenheiro && <p><strong>Engenheiro:</strong> {obraSelecionada.engenheiro}</p>}
+            {obraSelecionada.endereco && <p><strong>Endereço:</strong> {obraSelecionada.endereco}</p>}
+            {obraSelecionada.observacoes && <p><strong>Observações:</strong> {obraSelecionada.observacoes}</p>}
+            <p><strong>Balancinhos ativos:</strong> {calcularAtivos(obraSelecionada.nome, "Balancinho")}</p>
+            <p><strong>Mini Gruas ativas:</strong> {calcularAtivos(obraSelecionada.nome, "Mini Grua")}</p>
+          </div>
+
+          <div>
+            <h3 className="text-md font-semibold mt-2">📊 Quantidade de Serviços</h3>
+            <p className="text-sm mt-1">
+              <strong>Balancinho:</strong><br />
+              • Instalação: {contarServicos(obraSelecionada.nome, "Balancinho", "Instalação")}<br />
+              • Deslocamento: {contarServicos(obraSelecionada.nome, "Balancinho", "Deslocamento")}<br />
+              • Manutenção: {contarServicos(obraSelecionada.nome, "Balancinho", "Manutenção")}<br />
+              • Remoção: {contarServicos(obraSelecionada.nome, "Balancinho", "Remoção")}
+            </p>
+            <p className="text-sm mt-2">
+              <strong>Mini Grua:</strong><br />
+              • Instalação: {contarServicos(obraSelecionada.nome, "Mini Grua", "Instalação")}<br />
+              • Ascensão: {contarServicos(obraSelecionada.nome, "Mini Grua", "Ascensão")}<br />
+              • Remoção: {contarServicos(obraSelecionada.nome, "Mini Grua", "Remoção")}
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mt-4">🛠️ Serviços Executados</h3>
+            <ul className="mt-2 space-y-2">
+              {servicosExecutados(obraSelecionada.nome).map((s) => (
+                <li key={s.id} className="border p-2 rounded bg-gray-50">
+                  <strong>{s.servico}</strong> - {s.equipamento}
+                  {s.tamanho && s.equipamento === "Balancinho" ? ` [${s.tamanho}m]` : ""} <br />
+                  Agendado: {s.dataAgendamento} — Liberado: {s.dataLiberacao || "—"}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </div>

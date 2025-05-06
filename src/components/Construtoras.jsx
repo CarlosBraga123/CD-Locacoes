@@ -5,10 +5,12 @@ export default function Construtoras() {
   const [nova, setNova] = useState("");
   const [editandoId, setEditandoId] = useState(null);
   const [nomeEditado, setNomeEditado] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const salvas = JSON.parse(localStorage.getItem("construtoras") || "[]");
     setConstrutoras(salvas);
+    setIsLoading(false);
   }, []);
 
   const salvarNova = () => {
@@ -64,40 +66,44 @@ export default function Construtoras() {
         </button>
       </div>
 
-      <ul className="mt-4 space-y-2">
-        {construtoras.map((c) => (
-          <li key={c.id} className="border p-2 rounded flex justify-between items-center">
-            {editandoId === c.id ? (
-              <div className="flex flex-col sm:flex-row sm:items-center w-full gap-2">
-                <input
-                  type="text"
-                  value={nomeEditado}
-                  onChange={(e) => setNomeEditado(e.target.value)}
-                  className="border p-1 rounded flex-1"
-                />
-                <div className="flex gap-2">
-                  <button onClick={salvarEdicao} className="text-green-600 text-sm underline">
-                    Salvar
-                  </button>
-                  <button onClick={() => excluir(c.id)} className="text-red-600 text-sm underline">
-                    Excluir
-                  </button>
+      {isLoading ? (
+        <p className="text-gray-500">🔄 Carregando construtoras...</p>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {construtoras.map((c) => (
+            <li key={c.id} className="border p-2 rounded flex justify-between items-center">
+              {editandoId === c.id ? (
+                <div className="flex flex-col sm:flex-row sm:items-center w-full gap-2">
+                  <input
+                    type="text"
+                    value={nomeEditado}
+                    onChange={(e) => setNomeEditado(e.target.value)}
+                    className="border p-1 rounded flex-1"
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={salvarEdicao} className="text-green-600 text-sm underline">
+                      Salvar
+                    </button>
+                    <button onClick={() => excluir(c.id)} className="text-red-600 text-sm underline">
+                      Excluir
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <>
-                <span>{c.nome}</span>
-                <button
-                  onClick={() => iniciarEdicao(c.id, c.nome)}
-                  className="text-blue-600 text-sm underline"
-                >
-                  Editar
-                </button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+              ) : (
+                <>
+                  <span>{c.nome}</span>
+                  <button
+                    onClick={() => iniciarEdicao(c.id, c.nome)}
+                    className="text-blue-600 text-sm underline"
+                  >
+                    Editar
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
